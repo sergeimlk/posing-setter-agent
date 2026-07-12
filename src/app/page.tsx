@@ -17,6 +17,8 @@ interface Prospect {
   compDate: string;
   notes: string;
   avatar?: string;
+  isFollower?: boolean;
+  interactionText?: string;
 }
 
 const initialKPIs = {
@@ -163,10 +165,27 @@ export default function Dashboard() {
 
   const handleSyncBrowser = async () => {
     setSyncing(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/agent/sync-instagram", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setActivity((prev) => [
+          { time: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }), text: "Lancement de la synchronisation intelligente (Priorisation des abonnés actifs)", icon: "⚡" },
+          ...prev,
+        ]);
+        alert("⚡ " + data.message);
+        // Refresh prospects list after 15 seconds
+        setTimeout(() => {
+          fetchProspects();
+        }, 15000);
+      } else {
+        alert("❌ Erreur de synchronisation: " + data.error);
+      }
+    } catch (err: any) {
+      alert("❌ Échec de la requête: " + err.message);
+    } finally {
       setSyncing(false);
-      alert("⚠️ Synchronisation initiée... Exécutez 'node scripts/sync-instagram.js' dans votre terminal pour extraire les DMs de Chrome.");
-    }, 1000);
+    }
   };
 
   const adjustKPI = async (key: keyof typeof kpis, amount: number) => {
@@ -185,24 +204,22 @@ export default function Dashboard() {
       }
     }
 
-    if (appsScriptUrl) {
-      try {
-        await fetch("/api/agent/sheets-crm", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            appsScriptUrl,
-            action: "updateKPIs",
-            kpis: newKpis,
-          }),
-        });
-        setActivity((prev) => [
-          { time: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }), text: `KPI "${key}" mis à jour sur Google Sheets CRM`, icon: "📊" },
-          ...prev,
-        ]);
-      } catch (err) {
-        console.error("Failed to sync KPIs to Sheets:", err);
-      }
+    try {
+      await fetch("/api/agent/sheets-crm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appsScriptUrl,
+          action: "updateKPIs",
+          kpis: newKpis,
+        }),
+      });
+      setActivity((prev) => [
+        { time: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }), text: `KPI "${key}" mis à jour dans le CRM`, icon: "📊" },
+        ...prev,
+      ]);
+    } catch (err) {
+      console.error("Failed to sync KPIs:", err);
     }
   };
 
@@ -240,41 +257,39 @@ export default function Dashboard() {
       }
     }
 
-    if (appsScriptUrl) {
-      try {
-        const res = await fetch("/api/agent/sheets-crm", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            appsScriptUrl,
-            action: "addOrUpdateProspect",
-            prospect: {
-              handle: updatedProspect.handle,
-              score: updatedProspect.score,
-              category: updatedProspect.category,
-              hansStep: updatedProspect.hansStep,
-              pertinence: updatedProspect.pertinence,
-              propension: updatedProspect.propension,
-              federation: updatedProspect.federation,
-              categoryBody: updatedProspect.categoryBody,
-              compDate: updatedProspect.compDate,
-              notes: updatedProspect.notes
-            }
-          }),
-        });
-        const result = await res.json();
-        if (result.success) {
-          setActivity((prev) => [
-            { time: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }), text: `Prospect @${p.handle} mis à jour dans Google Sheets CRM`, icon: "✅" },
-            ...prev,
-          ]);
-        } else {
-          alert(`Erreur de synchronisation : ${result.error}`);
-        }
-      } catch (err: any) {
-        console.error("Failed to save prospect to Sheets:", err);
-        alert(`Erreur lors de la sauvegarde : ${err.message}`);
+    try {
+      const res = await fetch("/api/agent/sheets-crm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appsScriptUrl,
+          action: "addOrUpdateProspect",
+          prospect: {
+            handle: updatedProspect.handle,
+            score: updatedProspect.score,
+            category: updatedProspect.category,
+            hansStep: updatedProspect.hansStep,
+            pertinence: updatedProspect.pertinence,
+            propension: updatedProspect.propension,
+            federation: updatedProspect.federation,
+            categoryBody: updatedProspect.categoryBody,
+            compDate: updatedProspect.compDate,
+            notes: updatedProspect.notes
+          }
+        }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setActivity((prev) => [
+          { time: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }), text: `Prospect @${p.handle} enregistré avec succès`, icon: "✅" },
+          ...prev,
+        ]);
+      } else {
+        alert(`Erreur de synchronisation : ${result.error}`);
       }
+    } catch (err: any) {
+      console.error("Failed to save prospect:", err);
+      alert(`Erreur lors de la sauvegarde : ${err.message}`);
     }
 
     setSavingProspect(null);
@@ -432,8 +447,37 @@ export default function Dashboard() {
                             p.federation
                           )}
                         </p>
+                        
+                        {/* Follower and Interaction Badges */}
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {p.isFollower !== false ? (
+                            <span className="text-[8px] bg-green-500/10 text-green-400 border border-green-500/20 px-1 py-0.5 rounded uppercase font-extrabold tracking-wider">
+                              Abonné
+                            </span>
+                          ) : (
+                            <span className="text-[8px] bg-white/5 text-text-muted border border-white/10 px-1 py-0.5 rounded uppercase font-extrabold tracking-wider">
+                              Non Abonné
+                            </span>
+                          )}
+                          {p.interactionText && (
+                            <span className="text-[8px] bg-gold-400/10 text-gold-300 border border-gold-400/20 px-1 py-0.5 rounded font-extrabold uppercase tracking-wider animate-pulse">
+                              ⚡ Interagit
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
+
+                    {/* Recent Activity Alert Box */}
+                    {p.interactionText && (
+                      <div className="bg-gold-500/5 border border-gold-500/10 rounded-lg p-2.5 mb-3 text-[11px] text-gold-200 font-medium flex items-start gap-1.5">
+                        <span className="text-xs">🔥</span>
+                        <div className="min-w-0">
+                          <span className="text-[8px] text-gold-500 block uppercase font-black tracking-wider mb-0.5">Activité Récente</span>
+                          <span className="truncate block" title={p.interactionText}>{p.interactionText}</span>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="space-y-2 text-xs border-t border-border-white/5 pt-3 mb-4">
                       <div className="flex justify-between items-center h-6">

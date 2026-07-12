@@ -53,6 +53,58 @@ export async function GET(req: NextRequest) {
   const sheetId = searchParams.get("sheetId") || DEFAULT_SHEET_ID;
   const appsScriptUrl = searchParams.get("appsScriptUrl");
 
+  // Load local database for merging
+  let localData = { prospects: [] };
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      localData = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+    }
+  } catch (e) {
+    console.warn("⚠️ Failed to load local data for merge:", e);
+  }
+
+  const mergeAndPrioritize = (sheetProspects: any[]) => {
+    // Merge sheet prospects and local prospects
+    const mergedMap = new Map();
+
+    // 1. Add all from local database first (keeps engagement details)
+    if (localData.prospects && Array.isArray(localData.prospects)) {
+      localData.prospects.forEach((lp: any) => {
+        mergedMap.set(lp.handle, { ...lp });
+      });
+    }
+
+    // 2. Overwrite/merge with sheet data (CRM status is source of truth)
+    sheetProspects.forEach((sp: any) => {
+      const handle = sp.handle;
+      const existing = mergedMap.get(handle) || {};
+      
+      mergedMap.set(handle, {
+        ...existing,
+        ...sp,
+        // Keep these fields from local scrape if present
+        avatar: existing.avatar || sp.avatar || `/avatars/${handle}.jpg`,
+        isFollower: existing.isFollower !== undefined ? existing.isFollower : true,
+        interactionText: existing.interactionText || "",
+        engagementScore: existing.engagementScore || 0
+      });
+    });
+
+    const combined = Array.from(mergedMap.values());
+
+    // Sort by recent interaction first, then score descending
+    combined.sort((a, b) => {
+      const aHasInteract = a.interactionText ? 1 : 0;
+      const bHasInteract = b.interactionText ? 1 : 0;
+      if (aHasInteract !== bHasInteract) {
+        return bHasInteract - aHasInteract;
+      }
+      return b.score - a.score;
+    });
+
+    return combined;
+  };
+
   // 1. Try Apps Script Web App first if configured
   if (appsScriptUrl && appsScriptUrl.startsWith("http")) {
     try {
@@ -60,7 +112,7 @@ export async function GET(req: NextRequest) {
       if (response.status === 200) {
         const json = await response.json();
         if (json && Array.isArray(json.prospects)) {
-          const prospects = json.prospects.map((p: any) => {
+          const rawProspects = json.prospects.map((p: any) => {
             const handle = (p["Pseudo Instagram"] || p["pseudo"] || p["handle"] || "").replace("@", "").trim();
             if (!handle) return null;
             const score = parseInt(p["Score Qualification (0-100)"] || p["score"] || "50", 10) || 50;
@@ -79,6 +131,7 @@ export async function GET(req: NextRequest) {
             };
           }).filter(Boolean);
           
+          const prospects = mergeAndPrioritize(rawProspects);
           return NextResponse.json({
             lastSync: new Date().toISOString(),
             prospects,
@@ -128,7 +181,7 @@ export async function GET(req: NextRequest) {
       const headers = rows[0].map(h => h.toLowerCase());
       
       // Parse rows into objects
-      const prospects = rows.slice(1).map((row) => {
+      const rawProspects = rows.slice(1).map((row) => {
         // Map header positions
         const getVal = (possibleHeaders: string[], fallbackVal: string = "") => {
           const idx = headers.findIndex(h => possibleHeaders.some(ph => h.includes(ph)));
@@ -157,6 +210,8 @@ export async function GET(req: NextRequest) {
           avatar: `https://images.unsplash.com/photo-${getAvatarHash(handle)}?w=150&h=150&fit=crop&crop=faces`
         };
       }).filter(Boolean);
+
+      const prospects = mergeAndPrioritize(rawProspects);
 
       return NextResponse.json({
         lastSync: new Date().toISOString(),
