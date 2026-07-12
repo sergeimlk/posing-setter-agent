@@ -51,9 +51,47 @@ function parseCSV(csvText: string) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const sheetId = searchParams.get("sheetId") || DEFAULT_SHEET_ID;
+  const appsScriptUrl = searchParams.get("appsScriptUrl");
 
-  // Google Sheets Export CSV URL for the "Prospects Qualifiés" sheet
-  // If the sheet has a specific name, export sheet name needs to be specified
+  // 1. Try Apps Script Web App first if configured
+  if (appsScriptUrl && appsScriptUrl.startsWith("http")) {
+    try {
+      const response = await fetch(appsScriptUrl, { cache: "no-store", timeout: 8000 } as any);
+      if (response.status === 200) {
+        const json = await response.json();
+        if (json && Array.isArray(json.prospects)) {
+          const prospects = json.prospects.map((p: any) => {
+            const handle = (p["Pseudo Instagram"] || p["pseudo"] || p["handle"] || "").replace("@", "").trim();
+            if (!handle) return null;
+            const score = parseInt(p["Score Qualification (0-100)"] || p["score"] || "50", 10) || 50;
+            return {
+              handle,
+              score,
+              category: score >= 80 ? "hot" : score >= 65 ? "principal" : "tiede",
+              hansStep: parseInt(p["Étape Hans"] || p["etape"] || p["hansStep"] || "1", 10) || 1,
+              pertinence: parseInt(p["Pertinence (Étoiles)"] || p["pertinence"] || "3", 10) || 3,
+              propension: parseInt(p["Propension d'Achat (Étoiles)"] || p["propension"] || "3", 10) || 3,
+              federation: p["Fédération"] || p["federation"] || "N/A",
+              categoryBody: p["Catégorie Body"] || p["categoryBody"] || "Classic Physique",
+              compDate: p["Date Compétition"] || p["compDate"] || "N/A",
+              notes: p["Notes / Douleurs"] || p["notes"] || "",
+              avatar: `https://images.unsplash.com/photo-${getAvatarHash(handle)}?w=150&h=150&fit=crop&crop=faces`
+            };
+          }).filter(Boolean);
+          
+          return NextResponse.json({
+            lastSync: new Date().toISOString(),
+            prospects,
+            usingFallback: false,
+          });
+        }
+      }
+    } catch (e: any) {
+      console.warn("⚠️ Failed to fetch from Apps Script Web App:", e.message);
+    }
+  }
+
+  // 2. Try Public CSV export URL
   const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=Prospects+Qualifi%C3%A9s`;
 
   try {

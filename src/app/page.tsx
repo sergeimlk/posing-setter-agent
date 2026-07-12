@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import QuizModal from "@/components/QuizModal";
 import instagramData from "@/data/instagram-data.json";
-import { Star, MessageCircle, ExternalLink, RefreshCw, Sparkles, TrendingUp, HelpCircle } from "lucide-react";
+import { Star, MessageCircle, ExternalLink, RefreshCw, Sparkles, TrendingUp, HelpCircle, Edit2, Check, X } from "lucide-react";
 import Link from "next/link";
 
 interface Prospect {
@@ -44,26 +44,36 @@ export default function Dashboard() {
   const [lastReport, setLastReport] = useState<string | null>(null);
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [syncing, setSyncing] = useState(false);
+
   const [usingFallback, setUsingFallback] = useState(false);
   const [sheetPrivate, setSheetPrivate] = useState(false);
   const [loadingProspects, setLoadingProspects] = useState(true);
 
+  // Edit Prospect State
+  const [editingHandle, setEditingHandle] = useState<string | null>(null);
+  const [editNotes, setEditNotes] = useState("");
+  const [editScore, setEditScore] = useState(50);
+  const [editStep, setEditStep] = useState(1);
+  const [editFed, setEditFed] = useState("N/A");
+  const [savingProspect, setSavingProspect] = useState<string | null>(null);
+
   const fetchProspects = useCallback(async () => {
     setLoadingProspects(true);
     try {
-      // Get sheet ID from localStorage settings if modified by user
       let sheetId = "1afeUsmftVlJhN4sh83MlcRQxFTnx3JZ3B-UhoYthf60";
+      let appsScriptUrl = "";
       if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("posing_setter_settings");
+        const saved = localStorage.getItem("setterSettings");
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
             if (parsed.sheetsId) sheetId = parsed.sheetsId;
+            if (parsed.appsScriptUrl) appsScriptUrl = parsed.appsScriptUrl;
           } catch (e) {}
         }
       }
 
-      const res = await fetch(`/api/agent/prospects?sheetId=${sheetId}`, { cache: "no-store" });
+      const res = await fetch(`/api/agent/prospects?sheetId=${sheetId}&appsScriptUrl=${encodeURIComponent(appsScriptUrl)}`, { cache: "no-store" });
       const data = await res.json();
       if (data.prospects) {
         setProspects(data.prospects);
@@ -159,11 +169,116 @@ export default function Dashboard() {
     }, 1000);
   };
 
-  const adjustKPI = (key: keyof typeof kpis, amount: number) => {
-    setKpis((prev) => ({
-      ...prev,
-      [key]: Math.max(0, (prev[key] as number) + amount),
-    }));
+  const adjustKPI = async (key: keyof typeof kpis, amount: number) => {
+    const updatedValue = Math.max(0, (kpis[key] as number) + amount);
+    const newKpis = { ...kpis, [key]: updatedValue };
+    setKpis(newKpis);
+
+    let appsScriptUrl = "";
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("setterSettings");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.appsScriptUrl) appsScriptUrl = parsed.appsScriptUrl;
+        } catch (e) {}
+      }
+    }
+
+    if (appsScriptUrl) {
+      try {
+        await fetch("/api/agent/sheets-crm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            appsScriptUrl,
+            action: "updateKPIs",
+            kpis: newKpis,
+          }),
+        });
+        setActivity((prev) => [
+          { time: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }), text: `KPI "${key}" mis à jour sur Google Sheets CRM`, icon: "📊" },
+          ...prev,
+        ]);
+      } catch (err) {
+        console.error("Failed to sync KPIs to Sheets:", err);
+      }
+    }
+  };
+
+  const startEditing = (p: Prospect) => {
+    setEditingHandle(p.handle);
+    setEditNotes(p.notes);
+    setEditScore(p.score);
+    setEditStep(p.hansStep);
+    setEditFed(p.federation);
+  };
+
+  const saveProspectChanges = async (p: Prospect) => {
+    setSavingProspect(p.handle);
+    
+    const updatedProspect: Prospect = {
+      ...p,
+      notes: editNotes,
+      score: editScore,
+      hansStep: editStep,
+      federation: editFed,
+      category: editScore >= 80 ? "hot" : editScore >= 65 ? "principal" : "tiede"
+    };
+
+    // Update locally first
+    setProspects((prev) => prev.map((pr) => (pr.handle === p.handle ? updatedProspect : pr)));
+
+    let appsScriptUrl = "";
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("setterSettings");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.appsScriptUrl) appsScriptUrl = parsed.appsScriptUrl;
+        } catch (e) {}
+      }
+    }
+
+    if (appsScriptUrl) {
+      try {
+        const res = await fetch("/api/agent/sheets-crm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            appsScriptUrl,
+            action: "addOrUpdateProspect",
+            prospect: {
+              handle: updatedProspect.handle,
+              score: updatedProspect.score,
+              category: updatedProspect.category,
+              hansStep: updatedProspect.hansStep,
+              pertinence: updatedProspect.pertinence,
+              propension: updatedProspect.propension,
+              federation: updatedProspect.federation,
+              categoryBody: updatedProspect.categoryBody,
+              compDate: updatedProspect.compDate,
+              notes: updatedProspect.notes
+            }
+          }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          setActivity((prev) => [
+            { time: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }), text: `Prospect @${p.handle} mis à jour dans Google Sheets CRM`, icon: "✅" },
+            ...prev,
+          ]);
+        } else {
+          alert(`Erreur de synchronisation : ${result.error}`);
+        }
+      } catch (err: any) {
+        console.error("Failed to save prospect to Sheets:", err);
+        alert(`Erreur lors de la sauvegarde : ${err.message}`);
+      }
+    }
+
+    setSavingProspect(null);
+    setEditingHandle(null);
   };
 
   const renderStars = (count: number) => {
@@ -274,89 +389,162 @@ export default function Dashboard() {
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {prospects.map((p) => (
-              <div
-                key={p.handle}
-                className="glass-card p-5 relative overflow-hidden flex flex-col justify-between hover:border-border-active transition-all group"
-              >
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    {p.avatar ? (
-                      <img
-                        src={p.avatar}
-                        alt={p.handle}
-                        className="w-12 h-12 rounded-full object-cover border border-gold-500/20"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-gold-900/40 border border-border-subtle flex items-center justify-center text-lg">
-                        👤
+            {prospects.map((p) => {
+              const isEditing = editingHandle === p.handle;
+              return (
+                <div
+                  key={p.handle}
+                  className="glass-card p-5 relative overflow-hidden flex flex-col justify-between hover:border-border-active transition-all group"
+                >
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      {p.avatar ? (
+                        <img
+                          src={p.avatar}
+                          alt={p.handle}
+                          className="w-12 h-12 rounded-full object-cover border border-gold-500/20"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gold-900/40 border border-border-subtle flex items-center justify-center text-lg">
+                          👤
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        {/* Clickable Instagram Direct Link */}
+                        <a
+                          href={`https://www.instagram.com/${p.handle}/`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-bold text-white text-sm hover:text-gold-400 flex items-center gap-1.5 transition-colors truncate"
+                        >
+                          @{p.handle}
+                          <ExternalLink size={12} className="text-text-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                        </a>
+                        <p className="text-[10px] text-gold-500 font-medium truncate">
+                          {p.categoryBody} • {isEditing ? (
+                            <input
+                              type="text"
+                              value={editFed}
+                              onChange={(e) => setEditFed(e.target.value)}
+                              className="bg-bg-input border border-border-subtle text-white text-[10px] px-1 py-0.5 w-16 focus:outline-none"
+                            />
+                          ) : (
+                            p.federation
+                          )}
+                        </p>
                       </div>
+                    </div>
+
+                    <div className="space-y-2 text-xs border-t border-border-white/5 pt-3 mb-4">
+                      <div className="flex justify-between items-center h-6">
+                        <span className="text-text-muted">Score Qualif :</span>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={editScore}
+                            min={0}
+                            max={100}
+                            onChange={(e) => setEditScore(parseInt(e.target.value, 10) || 50)}
+                            className="bg-bg-input border border-border-subtle text-gold-400 text-xs px-1.5 py-0.5 w-14 font-black focus:outline-none text-right"
+                          />
+                        ) : (
+                          <span className="font-black text-gold-400">{p.score}/100</span>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center h-6">
+                        <span className="text-text-muted">Étape Hans :</span>
+                        {isEditing ? (
+                          <select
+                            value={editStep}
+                            onChange={(e) => setEditStep(parseInt(e.target.value, 10) || 1)}
+                            className="bg-bg-input border border-border-subtle text-white text-[10px] px-1 py-0.5 focus:outline-none"
+                          >
+                            {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+                              <option key={num} value={num}>Étape {num}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="font-bold text-white">
+                            {p.hansStep}/7 - {getStepName(p.hansStep)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Pertinence :</span>
+                        {renderStars(p.pertinence)}
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Propension :</span>
+                        {renderStars(p.propension)}
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Compétition :</span>
+                        <span className="text-white font-medium">{p.compDate}</span>
+                      </div>
+                      
+                      {/* Notes / Edit Notes */}
+                      {isEditing ? (
+                        <textarea
+                          value={editNotes}
+                          onChange={(e) => setEditNotes(e.target.value)}
+                          rows={3}
+                          className="w-full bg-bg-input border border-border-subtle rounded-lg p-2 text-xs text-text-primary focus:outline-none mt-2 resize-none"
+                        />
+                      ) : (
+                        <p className="text-xs text-text-secondary mt-2 line-clamp-3 italic">
+                          &ldquo; {p.notes} &rdquo;
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-border-white/5 flex gap-2">
+                    {isEditing ? (
+                      <>
+                        <button
+                          onClick={() => saveProspectChanges(p)}
+                          disabled={savingProspect === p.handle}
+                          className="btn-gold flex-1 py-2 text-xs flex items-center justify-center gap-1 disabled:opacity-50"
+                        >
+                          <Check size={12} /> {savingProspect === p.handle ? "Sauvegarde..." : "Enregistrer"}
+                        </button>
+                        <button
+                          onClick={() => setEditingHandle(null)}
+                          className="btn-ghost py-2 px-2 text-xs"
+                        >
+                          <X size={12} />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => startEditing(p)}
+                          className="btn-ghost p-2 text-xs"
+                          title="Modifier les infos"
+                        >
+                          <Edit2 size={12} />
+                        </button>
+                        <a
+                          href={`https://www.instagram.com/${p.handle}/`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-ghost flex-1 text-center py-2 text-xs flex items-center justify-center gap-1"
+                        >
+                          💬 Message DM
+                        </a>
+                        <Link
+                          href={`/agent?prospect=${p.handle}&step=${p.hansStep}`}
+                          className="btn-gold py-2 px-3 text-xs flex items-center justify-center"
+                          title="Générer brouillon"
+                        >
+                          <Sparkles size={12} />
+                        </Link>
+                      </>
                     )}
-                    <div>
-                      {/* Clickable Instagram Direct Link */}
-                      <a
-                        href={`https://www.instagram.com/${p.handle}/`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-bold text-white text-sm hover:text-gold-400 flex items-center gap-1.5 transition-colors"
-                      >
-                        @{p.handle}
-                        <ExternalLink size={12} className="text-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </a>
-                      <p className="text-[10px] text-gold-500 font-medium">
-                        {p.categoryBody} • {p.federation}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 text-xs border-t border-border-white/5 pt-3 mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-text-muted">Score Qualif :</span>
-                      <span className="font-black text-gold-400">{p.score}/100</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-text-muted">Étape Hans :</span>
-                      <span className="font-bold text-white">
-                        {p.hansStep}/7 - {getStepName(p.hansStep)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-text-muted">Pertinence :</span>
-                      {renderStars(p.pertinence)}
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-text-muted">Propension :</span>
-                      {renderStars(p.propension)}
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-text-muted">Compétition :</span>
-                      <span className="text-white font-medium">{p.compDate}</span>
-                    </div>
-                    <p className="text-xs text-text-secondary mt-2 line-clamp-3 italic">
-                      &ldquo; {p.notes} &rdquo;
-                    </p>
                   </div>
                 </div>
-
-                <div className="pt-3 border-t border-border-white/5 flex gap-2">
-                  <a
-                    href={`https://www.instagram.com/${p.handle}/`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-ghost flex-1 text-center py-2 text-xs flex items-center justify-center gap-1"
-                  >
-                    💬 Message DM
-                  </a>
-                  <Link
-                    href={`/agent?prospect=${p.handle}&step=${p.hansStep}`}
-                    className="btn-gold py-2 px-3 text-xs flex items-center justify-center"
-                    title="Générer brouillon"
-                  >
-                    <Sparkles size={12} />
-                  </Link>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

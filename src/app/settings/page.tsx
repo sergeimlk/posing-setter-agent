@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 interface Settings {
   geminiKey: string;
   sheetsId: string;
+  appsScriptUrl?: string;
   calendlyUrl: string;
   commissionRate: number;
   cronMorning: string;
@@ -22,6 +23,7 @@ interface Settings {
 const defaultSettings: Settings = {
   geminiKey: "",
   sheetsId: "1afeUsmftVlJhN4sh83MlcRQxFTnx3JZ3B-UhoYthf60",
+  appsScriptUrl: "",
   calendlyUrl: "https://calendly.com/posing-session-reservation/appel-decouverte-posing-empire",
   commissionRate: 5,
   cronMorning: "08:00",
@@ -124,6 +126,19 @@ export default function SettingsPage() {
             onChange={(e) => update("sheetsId", e.target.value)}
             className="w-full bg-bg-input border border-border-subtle rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-border-active font-mono"
           />
+        </div>
+        <div>
+          <label className="text-xs text-text-muted uppercase tracking-wider block mb-1">URL de l&apos;application Google Apps Script (Écriture)</label>
+          <input
+            type="url"
+            value={settings.appsScriptUrl || ""}
+            onChange={(e) => update("appsScriptUrl", e.target.value)}
+            placeholder="https://script.google.com/macros/s/.../exec"
+            className="w-full bg-bg-input border border-border-subtle rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-border-active font-mono"
+          />
+          <p className="text-[10px] text-text-muted mt-1.5 leading-relaxed">
+            Pour écrire directement dans votre Google Sheet sans identifiants complexes, déployez le script fourni dans Extensions &rarr; Apps Script en tant que <strong>&ldquo;Application Web&rdquo;</strong> accessible par <strong>&ldquo;Tout le monde&rdquo;</strong> (Anyone), puis collez l&apos;URL d&apos;exécution ici.
+          </p>
         </div>
         <a
           href={`https://docs.google.com/spreadsheets/d/${settings.sheetsId}/edit`}
