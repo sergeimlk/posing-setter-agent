@@ -1,0 +1,118 @@
+{
+  "lastSync": "2026-07-12T11:24:34.959Z",
+  "prospects": [
+    {
+      "handle": "@lucas_classic_physique",
+      "score": 75,
+      "category": "principal",
+      "hansStep": 1,
+      "pertinence": 5,
+      "propension": 3,
+      "federation": "N/A",
+      "categoryBody": "Classic Physique",
+      "compDate": "Octobre 2026",
+      "notes": "Prospect à réveiller via story"
+    },
+    {
+      "handle": "@thomas_wnbf_natty",
+      "score": 70,
+      "category": "principal",
+      "hansStep": 2,
+      "pertinence": 4,
+      "propension": 4,
+      "federation": "WNBF",
+      "categoryBody": "Bodybuilding",
+      "compDate": "Octobre 2026",
+      "notes": "Cherche une routine libre personnalisée et naturelle"
+    },
+    {
+      "handle": "@alex_gainz_99",
+      "score": 50,
+      "category": "tiede",
+      "hansStep": 3,
+      "pertinence": 4,
+      "propension": 3,
+      "federation": "N/A",
+      "categoryBody": "Bodybuilding",
+      "compDate": "Octobre 2026",
+      "notes": "Prospect à réveiller via story"
+    },
+    {
+      "handle": "@julien_road_to_pro",
+      "score": 85,
+      "category": "hot",
+      "hansStep": 4,
+      "pertinence": 5,
+      "propension": 3,
+      "federation": "IFBB",
+      "categoryBody": "Bodybuilding",
+      "compDate": "Octobre 2026",
+      "notes": "Compétiteur motivé, cherche à améliorer ses quarts de tour"
+    },
+    {
+      "handle": "@maxime_fit_IFBB",
+      "score": 85,
+      "category": "hot",
+      "hansStep": 5,
+      "pertinence": 5,
+      "propension": 3,
+      "federation": "IFBB",
+      "categoryBody": "Bodybuilding",
+      "compDate": "Octobre 2026",
+      "notes": "Compétiteur motivé, cherche à améliorer ses quarts de tour"
+    },
+    {
+      "handle": "@hugo_bodybuilding",
+      "score": 50,
+      "category": "tiede",
+      "hansStep": 6,
+      "pertinence": 4,
+      "propension": 3,
+      "federation": "N/A",
+      "categoryBody": "Bodybuilding",
+      "compDate": "Octobre 2026",
+      "notes": "Prospect à réveiller via story"
+    },
+    {
+      "handle": "@valentin_posing_empire",
+      "score": 50,
+      "category": "tiede",
+      "hansStep": 1,
+      "pertinence": 4,
+      "propension": 3,
+      "federation": "N/A",
+      "categoryBody": "Bodybuilding",
+      "compDate": "Octobre 2026",
+      "notes": "Prospect à réveiller via story"
+    },
+    {
+      "handle": "@florian_shredded",
+      "score": 50,
+      "category": "tiede",
+      "hansStep": 2,
+      "pertinence": 4,
+      "propension": 3,
+      "federation": "N/A",
+      "categoryBody": "Bodybuilding",
+      "compDate": "Octobre 2026",
+      "notes": "Prospect à réveiller via story"
+    }
+  ],
+  "chatUsers": [
+    {
+      "handle": "@lucas_classic_physique",
+      "lastMessage": "Ouais je galère un peu sur le vacuum en fait...",
+      "time": "14:32"
+    },
+    {
+      "handle": "@thomas_wnbf_natty",
+      "lastMessage": "🎤 Message vocal",
+      "time": "13:15"
+    },
+    {
+      "handle": "@alex_gainz_99",
+      "lastMessage": "Je suis en men's physique IFBB",
+      "time": "Hier"
+    }
+  ]
+}

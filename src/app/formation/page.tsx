@@ -1,13 +1,19 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import lessonsData from "@/data/lessons.json";
 import QuizModal from "@/components/QuizModal";
+import { 
+  Play, BookOpen, Target, Users, Award, UserCheck, Key, 
+  Cpu, Dumbbell, ShieldAlert, CheckCircle, HelpCircle, 
+  Copy, Check, FileText, ExternalLink, Video 
+} from "lucide-react";
 
 interface Lesson {
   id: string;
   title: string;
   summary: string;
   videoType: string;
+  videoUrl?: string;
   links?: string[];
 }
 
@@ -17,6 +23,23 @@ interface Module {
   title: string;
   lessons: Lesson[];
 }
+
+// Maps lesson title or ID to Lucide icon
+const getLessonIcon = (title: string) => {
+  const t = title.toLowerCase();
+  if (t.includes("présentation du posing") || t.includes("introduction")) return BookOpen;
+  if (t.includes("objectifs") || t.includes("vision")) return Target;
+  if (t.includes("équipe")) return Users;
+  if (t.includes("témoignages") || t.includes("résultats")) return Award;
+  if (t.includes("avatar")) return UserCheck;
+  if (t.includes("offre") || t.includes("tarifs")) return Key;
+  if (t.includes("mécanisme unique")) return Cpu;
+  if (t.includes("posing")) return Dumbbell;
+  if (t.includes("standards") || t.includes("règles")) return ShieldAlert;
+  if (t.includes("sop") || t.includes("tracking")) return CheckCircle;
+  if (t.includes("calendly") || t.includes("lien")) return ExternalLink;
+  return FileText;
+};
 
 export default function FormationPage() {
   const modules = lessonsData.modules as Module[];
@@ -31,6 +54,7 @@ export default function FormationPage() {
   });
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizModule, setQuizModule] = useState<string | undefined>();
+  const [copiedResource, setCopiedResource] = useState<string | null>(null);
 
   const totalLessons = modules.reduce((acc, m) => acc + m.lessons.length, 0);
   const completedCount = completed.size;
@@ -44,6 +68,12 @@ export default function FormationPage() {
       localStorage.setItem("completedLessons", JSON.stringify([...next]));
       return next;
     });
+  };
+
+  const copyResourceLink = (url: string, label: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedResource(label);
+    setTimeout(() => setCopiedResource(null), 2000);
   };
 
   return (
@@ -93,20 +123,24 @@ export default function FormationPage() {
 
               {activeModule === mod.id && (
                 <div className="border-t border-border-subtle">
-                  {mod.lessons.map((lesson) => (
-                    <button
-                      key={lesson.id}
-                      onClick={() => setActiveLesson(lesson)}
-                      className={`w-full text-left px-5 py-3 flex items-center gap-3 transition-all border-l-2 ${
-                        activeLesson?.id === lesson.id
-                          ? "bg-gold-900/20 border-l-gold-500 text-white"
-                          : "border-l-transparent text-text-secondary hover:text-white hover:bg-bg-card-hover"
-                      }`}
-                    >
-                      <span className="text-sm">{completed.has(lesson.id) ? "✅" : "📄"}</span>
-                      <span className="text-xs font-medium flex-1 leading-tight">{lesson.title}</span>
-                    </button>
-                  ))}
+                  {mod.lessons.map((lesson) => {
+                    const Icon = getLessonIcon(lesson.title);
+                    return (
+                      <button
+                        key={lesson.id}
+                        onClick={() => setActiveLesson(lesson)}
+                        className={`w-full text-left px-5 py-3 flex items-center gap-3 transition-all border-l-2 ${
+                          activeLesson?.id === lesson.id
+                            ? "bg-gold-900/20 border-l-gold-500 text-white"
+                            : "border-l-transparent text-text-secondary hover:text-white hover:bg-bg-card-hover"
+                        }`}
+                      >
+                        <Icon size={14} className={activeLesson?.id === lesson.id ? "text-gold-400" : "text-text-disabled"} />
+                        <span className="text-xs font-medium flex-1 leading-tight">{lesson.title}</span>
+                        {completed.has(lesson.id) && <span className="text-[10px]">✅</span>}
+                      </button>
+                    );
+                  })}
                   <div className="px-5 py-3 border-t border-border-white">
                     <button
                       onClick={() => { setQuizModule(mod.id); setShowQuiz(true); }}
@@ -122,16 +156,14 @@ export default function FormationPage() {
 
           {/* Resources */}
           <div className="glass-card p-5">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-gold-500 mb-3">📎 Ressources</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-gold-500 mb-3">📎 Ressources YouTube</h3>
             <div className="space-y-2">
-              <ResourceLink label="📅 Calendly" url="https://calendly.com/posing-session-reservation/appel-decouverte-posing-empire" />
-              <ResourceLink label="📺 Quarts de tour" url="https://youtu.be/ZUXbjlT-Lmc" />
-              <ResourceLink label="📺 Activation Quads" url="https://youtu.be/zVHV9o940nI" />
-              <ResourceLink label="📺 Présence scénique" url="https://youtu.be/8_8QT46LcDM" />
-              <ResourceLink label="📺 IFBB" url="https://youtu.be/7km-L4Na4YM" />
-              <ResourceLink label="📺 WNBF" url="https://youtu.be/Y_Vgyqg0dN0" />
-              <ResourceLink label="📸 Instagram PE" url="https://www.instagram.com/posingempire/" />
-              <ResourceLink label="🎬 YouTube Témoignages" url="https://www.youtube.com/@ManaelPosingTémoignages" />
+              <ResourceRow label="📅 Calendly" url="https://calendly.com/posing-session-reservation/appel-decouverte-posing-empire" onCopy={copyResourceLink} copied={copiedResource} />
+              <ResourceRow label="📺 Quarts de tour" url="https://youtu.be/ZUXbjlT-Lmc" onCopy={copyResourceLink} copied={copiedResource} />
+              <ResourceRow label="📺 Activation Quads" url="https://youtu.be/zVHV9o940nI" onCopy={copyResourceLink} copied={copiedResource} />
+              <ResourceRow label="📺 Présence scénique" url="https://youtu.be/8_8QT46LcDM" onCopy={copyResourceLink} copied={copiedResource} />
+              <ResourceRow label="📺 IFBB" url="https://youtu.be/7km-L4Na4YM" onCopy={copyResourceLink} copied={copiedResource} />
+              <ResourceRow label="📺 WNBF" url="https://youtu.be/Y_Vgyqg0dN0" onCopy={copyResourceLink} copied={copiedResource} />
             </div>
           </div>
         </div>
@@ -159,8 +191,30 @@ export default function FormationPage() {
                 </button>
               </div>
 
-              {/* Video placeholder */}
-              {activeLesson.videoType === "skool" && (
+              {/* Video Section - Supports Native streaming or YouTube iframe */}
+              {activeLesson.videoType === "local" && activeLesson.videoUrl ? (
+                <div className="aspect-video bg-black rounded-xl border border-border-subtle overflow-hidden relative group">
+                  <video 
+                    src={activeLesson.videoUrl} 
+                    controls 
+                    className="w-full h-full object-contain"
+                    poster="/assets/video-placeholder.png"
+                  />
+                  <div className="absolute top-2 right-2 bg-gold-950/80 border border-gold-500/30 px-3 py-1 rounded-full text-[10px] font-bold text-gold-300 flex items-center gap-1">
+                    <Video size={10} /> Vidéo Locale
+                  </div>
+                </div>
+              ) : activeLesson.videoType === "youtube" && activeLesson.videoUrl ? (
+                <div className="aspect-video bg-black rounded-xl border border-border-subtle overflow-hidden">
+                  <iframe
+                    src={activeLesson.videoUrl}
+                    title={activeLesson.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full border-0"
+                  />
+                </div>
+              ) : (
                 <div className="aspect-video bg-bg-primary rounded-xl border border-border-subtle flex items-center justify-center">
                   <div className="text-center p-8">
                     <span className="text-4xl mb-4 block">🎬</span>
@@ -220,10 +274,23 @@ export default function FormationPage() {
   );
 }
 
-function ResourceLink({ label, url }: { label: string; url: string }) {
+function ResourceRow({ 
+  label, url, onCopy, copied 
+}: { 
+  label: string; url: string; onCopy: (url: string, label: string) => void; copied: string | null 
+}) {
+  const isCopied = copied === label;
   return (
-    <a href={url} target="_blank" className="flex items-center gap-2 p-2 rounded-lg bg-bg-card/50 border border-border-white hover:border-border-subtle transition-colors text-xs text-text-secondary hover:text-text-primary">
-      <span>{label}</span>
-    </a>
+    <div className="flex items-center justify-between p-2 rounded-lg bg-bg-card/50 border border-border-white hover:border-border-subtle transition-colors text-xs">
+      <a href={url} target="_blank" className="text-text-secondary hover:text-text-primary truncate mr-2">
+        {label}
+      </a>
+      <button 
+        onClick={() => onCopy(url, label)} 
+        className="p-1 rounded bg-bg-primary hover:bg-bg-card text-gold-400 hover:text-gold-300 transition-colors"
+      >
+        {isCopied ? <Check size={12} className="text-success" /> : <Copy size={12} />}
+      </button>
+    </div>
   );
 }

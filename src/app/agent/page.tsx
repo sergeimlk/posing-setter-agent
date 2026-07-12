@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { Copy, Check, Send, Sparkles, Brain, HelpCircle } from "lucide-react";
 
 export default function AgentPage() {
   const [chatInput, setChatInput] = useState("");
@@ -14,6 +15,17 @@ export default function AgentPage() {
   const [draftLoading, setDraftLoading] = useState(false);
   const [copied, setCopied] = useState<number | null>(null);
 
+  const cleanText = (text: string) => {
+    return text
+      .replace(/\*\*/g, "")
+      .replace(/---/g, "")
+      .replace(/###/g, "")
+      .replace(/##/g, "")
+      .replace(/#/g, "")
+      .replace(/`/g, "")
+      .trim();
+  };
+
   const sendChat = async () => {
     if (!chatInput.trim()) return;
     const userMsg = chatInput.trim();
@@ -27,7 +39,7 @@ export default function AgentPage() {
         body: JSON.stringify({ message: userMsg, context: chatHistory.map((m) => `${m.role}: ${m.text}`).join("\n") }),
       });
       const data = await res.json();
-      setChatHistory((prev) => [...prev, { role: "agent", text: data.response || data.error || "Erreur" }]);
+      setChatHistory((prev) => [...prev, { role: "agent", text: cleanText(data.response || data.error || "Erreur") }]);
     } catch {
       setChatHistory((prev) => [...prev, { role: "agent", text: "Erreur de connexion." }]);
     } finally {
@@ -45,7 +57,7 @@ export default function AgentPage() {
         body: JSON.stringify({ conversationHistory: draftConvo, prospectInfo: draftProspect, hansStep: draftStep }),
       });
       const data = await res.json();
-      setDrafts(data.drafts || []);
+      setDrafts((data.drafts || []).map((d: string) => cleanText(d)));
       setDraftReasoning(data.reasoning || "");
       setDraftResource(data.resourceToSend || "none");
     } catch {
@@ -55,8 +67,8 @@ export default function AgentPage() {
     }
   };
 
-  const copyDraft = (idx: number) => {
-    navigator.clipboard.writeText(drafts[idx]);
+  const copyDraft = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text);
     setCopied(idx);
     setTimeout(() => setCopied(null), 2000);
   };
@@ -74,12 +86,21 @@ export default function AgentPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chat with Agent */}
         <div className="glass-card p-6 flex flex-col h-[600px]">
-          <h3 className="text-sm font-bold uppercase tracking-widest text-gold-500 mb-4">💬 Chat avec l&apos;Agent</h3>
-          <div className="flex-1 overflow-y-auto space-y-3 mb-4">
+          <div className="flex items-center gap-2 border-b border-border-subtle pb-3 mb-4">
+            <Brain size={18} className="text-gold-500" />
+            <h3 className="text-sm font-bold uppercase tracking-widest text-white">Chat de coaching</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 scrollbar-custom">
             {chatHistory.length === 0 && (
-              <p className="text-sm text-text-muted italic">
-                Pose une question à l&apos;agent : stratégie de setting, contournement d&apos;objection, qualification de prospect...
-              </p>
+              <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-4">
+                <HelpCircle size={40} className="text-text-disabled" />
+                <div>
+                  <p className="text-sm font-bold text-white">Posez vos questions à l&apos;Agent</p>
+                  <p className="text-xs text-text-muted mt-1 max-w-xs">
+                    Demandez des relances, des conseils de négociation, ou comment répondre à des objections sur le posing ou le prix.
+                  </p>
+                </div>
+              </div>
             )}
             {chatHistory.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -108,18 +129,21 @@ export default function AgentPage() {
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendChat()}
-              placeholder="Demande à l'agent..."
+              placeholder="Demander une réponse à une objection..."
               className="flex-1 bg-bg-input border border-border-subtle rounded-full px-4 py-3 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-border-active transition-colors"
             />
-            <button onClick={sendChat} disabled={loading} className="btn-gold px-6 disabled:opacity-50">
-              →
+            <button onClick={sendChat} disabled={loading} className="btn-gold p-3 rounded-full flex items-center justify-center w-12 h-12 disabled:opacity-50">
+              <Send size={16} />
             </button>
           </div>
         </div>
 
         {/* Draft Generator */}
         <div className="glass-card p-6">
-          <h3 className="text-sm font-bold uppercase tracking-widest text-gold-500 mb-4">📝 Générateur de brouillons</h3>
+          <div className="flex items-center gap-2 border-b border-border-subtle pb-3 mb-4">
+            <Sparkles size={18} className="text-gold-500" />
+            <h3 className="text-sm font-bold uppercase tracking-widest text-white">Générateur de Réponses</h3>
+          </div>
           <div className="space-y-4">
             <div>
               <label className="text-xs text-text-muted uppercase tracking-wider block mb-1">Infos prospect</label>
@@ -127,7 +151,7 @@ export default function AgentPage() {
                 type="text"
                 value={draftProspect}
                 onChange={(e) => setDraftProspect(e.target.value)}
-                placeholder="ex: @athlete_23, compétiteur IFBB, scène oct 2026"
+                placeholder="ex: @athlete_classic, IFBB oct 2026, vacuum à corriger"
                 className="w-full bg-bg-input border border-border-subtle rounded-xl px-4 py-3 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-border-active"
               />
             </div>
@@ -137,6 +161,7 @@ export default function AgentPage() {
                 {[1, 2, 3, 4, 5, 6, 7].map((s) => (
                   <button
                     key={s}
+                    type="button"
                     onClick={() => setDraftStep(s)}
                     className={`w-10 h-10 rounded-lg text-xs font-bold transition-all ${
                       draftStep === s ? "bg-gold-500 text-bg-primary" : "bg-bg-card border border-border-subtle text-text-secondary hover:border-border-hover"
@@ -147,42 +172,65 @@ export default function AgentPage() {
                 ))}
               </div>
               <p className="text-[10px] text-text-muted mt-1">
-                {["", "Icebreaker", "Contexte", "Objectif", "Bilan posing", "Douleur/Blocage", "Prise de conscience", "Call-to-Action"][draftStep]}
+                {["", "Icebreaker (Accroche)", "Contexte (Fédération/Catégorie)", "Objectif (Scène/But)", "Bilan (Posing actuel)", "Douleur (Blocage)", "Prise de conscience", "CTA (Calendly)"][draftStep]}
               </p>
             </div>
             <div>
-              <label className="text-xs text-text-muted uppercase tracking-wider block mb-1">Historique de conversation</label>
+              <label className="text-xs text-text-muted uppercase tracking-wider block mb-1">Historique de conversation (facultatif)</label>
               <textarea
                 value={draftConvo}
                 onChange={(e) => setDraftConvo(e.target.value)}
-                placeholder="Colle ici l'historique des messages échangés..."
+                placeholder="Collez ici l'historique des derniers messages..."
                 rows={4}
                 className="w-full bg-bg-input border border-border-subtle rounded-xl px-4 py-3 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-border-active resize-none"
               />
             </div>
-            <button onClick={generateDrafts} disabled={draftLoading} className="btn-gold w-full disabled:opacity-50">
-              {draftLoading ? "⏳ Génération..." : "✨ Générer 3 brouillons"}
+            <button onClick={generateDrafts} disabled={draftLoading} className="btn-gold w-full py-3.5 text-sm disabled:opacity-50">
+              {draftLoading ? "⏳ Génération des brouillons..." : "✨ Générer 3 propositions de message"}
             </button>
 
             {/* Draft Results */}
             {drafts.length > 0 && (
-              <div className="space-y-3 mt-4">
-                {draftReasoning && <p className="text-xs text-text-muted italic">💡 {draftReasoning}</p>}
+              <div className="space-y-4 mt-6">
+                {draftReasoning && (
+                  <div className="bg-gold-950/20 border border-gold-900/50 rounded-xl p-3 text-xs text-gold-400">
+                    💡 <strong>Conseil de l&apos;Agent :</strong> {draftReasoning}
+                  </div>
+                )}
                 {draftResource && draftResource !== "none" && (
-                  <p className="text-xs text-gold-400">📎 Ressource suggérée : <a href={draftResource} target="_blank" className="underline">{draftResource}</a></p>
+                  <div className="bg-bg-card border border-border-white rounded-xl p-3 text-xs flex justify-between items-center">
+                    <span className="text-text-secondary">Ressource à envoyer :</span>
+                    <a href={draftResource} target="_blank" className="text-gold-400 hover:underline font-bold font-mono">
+                      {draftResource.substring(0, 30)}...
+                    </a>
+                  </div>
                 )}
                 {drafts.map((draft, idx) => (
-                  <div key={idx} className="bg-bg-card border border-border-subtle rounded-xl p-4 group">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-[10px] font-bold text-text-muted uppercase">Option {idx + 1}</span>
+                  <div key={idx} className="bg-bg-card border border-border-white rounded-xl p-4 flex flex-col justify-between gap-3 relative group">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-gold-500 uppercase tracking-wider">Option {idx + 1}</span>
                       <button
-                        onClick={() => copyDraft(idx)}
-                        className="text-xs text-gold-500 hover:text-gold-300 transition-colors"
+                        onClick={() => copyDraft(draft, idx)}
+                        className="text-xs text-gold-400 hover:text-gold-300 flex items-center gap-1 transition-colors"
                       >
-                        {copied === idx ? "✅ Copié !" : "📋 Copier"}
+                        {copied === idx ? (
+                          <>
+                            <Check size={12} /> Copié !
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={12} /> Copier le bloc
+                          </>
+                        )}
                       </button>
                     </div>
-                    <p className="text-sm text-text-primary">{draft}</p>
+                    {/* Raw Textbox Ready to Copy */}
+                    <textarea
+                      readOnly
+                      value={draft}
+                      onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                      className="w-full bg-bg-input border border-border-subtle rounded-lg p-3 text-sm text-text-primary font-mono focus:outline-none resize-none select-all h-20"
+                    />
                   </div>
                 ))}
               </div>
