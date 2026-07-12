@@ -44,12 +44,43 @@ export default function Dashboard() {
   const [lastReport, setLastReport] = useState<string | null>(null);
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [syncing, setSyncing] = useState(false);
+  const [usingFallback, setUsingFallback] = useState(false);
+  const [sheetPrivate, setSheetPrivate] = useState(false);
+  const [loadingProspects, setLoadingProspects] = useState(true);
 
-  useEffect(() => {
-    if (instagramData && instagramData.prospects) {
-      setProspects(instagramData.prospects as Prospect[]);
+  const fetchProspects = useCallback(async () => {
+    setLoadingProspects(true);
+    try {
+      // Get sheet ID from localStorage settings if modified by user
+      let sheetId = "1afeUsmftVlJhN4sh83MlcRQxFTnx3JZ3B-UhoYthf60";
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("posing_setter_settings");
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed.sheetsId) sheetId = parsed.sheetsId;
+          } catch (e) {}
+        }
+      }
+
+      const res = await fetch(`/api/agent/prospects?sheetId=${sheetId}`, { cache: "no-store" });
+      const data = await res.json();
+      if (data.prospects) {
+        setProspects(data.prospects);
+      }
+      setUsingFallback(!!data.usingFallback);
+      setSheetPrivate(!!data.sheetPrivate);
+    } catch (err) {
+      console.error("Error loading prospects:", err);
+      setUsingFallback(true);
+    } finally {
+      setLoadingProspects(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchProspects();
+  }, [fetchProspects]);
 
   // Listen for quiz event from navbar
   useEffect(() => {
@@ -176,6 +207,23 @@ export default function Dashboard() {
           Sync depuis Instagram Chrome Mac
         </button>
       </div>
+
+      {usingFallback && sheetPrivate && (
+        <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-300 text-xs space-y-2 animate-fadeIn">
+          <p className="font-bold flex items-center gap-1.5 text-sm">
+            <span>⚠️</span> CRM Google Sheets Privé (Lecture impossible)
+          </p>
+          <p className="leading-relaxed">
+            Votre document CRM actuel est privé. Pour afficher et gérer vos <strong>vrais prospects</strong> directement depuis Sheets en temps réel, suivez ces étapes simples :
+          </p>
+          <ol className="list-decimal pl-5 space-y-1">
+            <li>Ouvrez votre document <a href="https://docs.google.com/spreadsheets/d/1afeUsmftVlJhN4sh83MlcRQxFTnx3JZ3B-UhoYthf60/edit" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-amber-200">Google Sheet CRM</a>.</li>
+            <li>Cliquez sur le bouton bleu <strong>Partager</strong> en haut à droite.</li>
+            <li>Sous <strong>Accès général</strong>, changez &ldquo;Limité&rdquo; par <strong>&ldquo;Tous les utilisateurs disposant du lien&rdquo;</strong> en mode <strong>Lecteur</strong>.</li>
+            <li>Actualisez ce tableau de bord pour charger les données réelles de votre CRM !</li>
+          </ol>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
