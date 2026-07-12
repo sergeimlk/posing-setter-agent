@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import QuizModal from "@/components/QuizModal";
 import instagramData from "@/data/instagram-data.json";
-import { Star, MessageCircle, ExternalLink, RefreshCw, Sparkles, TrendingUp, HelpCircle, Edit2, Check, X } from "lucide-react";
+import { Star, MessageCircle, ExternalLink, RefreshCw, Sparkles, TrendingUp, HelpCircle, Edit2, Check, X, Search, SlidersHorizontal, Filter, RotateCcw } from "lucide-react";
 import Link from "next/link";
 
 interface Prospect {
@@ -58,6 +58,62 @@ export default function Dashboard() {
   const [editStep, setEditStep] = useState(1);
   const [editFed, setEditFed] = useState("N/A");
   const [savingProspect, setSavingProspect] = useState<string | null>(null);
+
+  // Advanced Filter States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedFollower, setSelectedFollower] = useState("all");
+  const [selectedActivity, setSelectedActivity] = useState("all");
+  const [selectedBodyNiche, setSelectedBodyNiche] = useState("all");
+  const [selectedHansStep, setSelectedHansStep] = useState("all");
+  const [minScore, setMinScore] = useState(0);
+
+  // Filter prospects based on active advanced filters
+  const filteredProspects = prospects.filter((p) => {
+    // 1. Search Query
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchHandle = p.handle.toLowerCase().includes(q);
+      const matchNotes = p.notes.toLowerCase().includes(q);
+      const matchFed = p.federation.toLowerCase().includes(q);
+      const matchBody = p.categoryBody.toLowerCase().includes(q);
+      if (!matchHandle && !matchNotes && !matchFed && !matchBody) return false;
+    }
+
+    // 2. Category Filter
+    if (selectedCategory !== "all" && p.category !== selectedCategory) return false;
+
+    // 3. Follower Filter
+    if (selectedFollower !== "all") {
+      const isFollower = p.isFollower !== false;
+      if (selectedFollower === "follower" && !isFollower) return false;
+      if (selectedFollower === "non-follower" && isFollower) return false;
+    }
+
+    // 4. Activity Filter
+    if (selectedActivity !== "all") {
+      const hasInteract = !!p.interactionText;
+      if (selectedActivity === "active" && !hasInteract) return false;
+      if (selectedActivity === "inactive" && hasInteract) return false;
+    }
+
+    // 5. Body Niche Filter
+    if (selectedBodyNiche !== "all") {
+      const niche = p.categoryBody.toLowerCase();
+      if (selectedBodyNiche === "classic" && !niche.includes("classic")) return false;
+      if (selectedBodyNiche === "bodybuilding" && !niche.includes("bodybuilding") && !niche.includes("body")) return false;
+      if (selectedBodyNiche === "bikini" && !niche.includes("bikini")) return false;
+      if (selectedBodyNiche === "mens" && !niche.includes("men")) return false;
+    }
+
+    // 6. Hans Step Filter
+    if (selectedHansStep !== "all" && p.hansStep.toString() !== selectedHansStep) return false;
+
+    // 7. Min Score Filter
+    if (p.score < minScore) return false;
+
+    return true;
+  });
 
   const fetchProspects = useCallback(async () => {
     setLoadingProspects(true);
@@ -398,19 +454,160 @@ export default function Dashboard() {
 
       {/* Grid of Prospects */}
       {prospects.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-black font-display text-gold-300 flex items-center gap-2">
-            🔥 Meilleurs Prospects Qualifiés (Instagram Réel)
-          </h3>
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h3 className="text-lg font-black font-display text-gold-300 flex items-center gap-2">
+              🔥 Prospects Qualifiés ({filteredProspects.length} affichés)
+            </h3>
+            
+            {/* Quick search input */}
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-muted" />
+              <input
+                type="text"
+                placeholder="Rechercher par @pseudo, douleurs, etc..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-bg-card border border-border-subtle rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-text-muted focus:border-gold-500 w-full focus:outline-none transition-colors"
+              />
+            </div>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {prospects.map((p) => {
-              const isEditing = editingHandle === p.handle;
-              return (
-                <div
-                  key={p.handle}
-                  className="glass-card p-5 relative overflow-hidden flex flex-col justify-between hover:border-border-active transition-all group"
+          {/* Advanced Filter Toolbar */}
+          <div className="bg-bg-card/40 border border-border-subtle rounded-xl p-4 space-y-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-white pb-2 border-b border-border-white/5">
+              <SlidersHorizontal size={14} className="text-gold-400" />
+              <span>Filtres de ciblage</span>
+              <button 
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory("all");
+                  setSelectedFollower("all");
+                  setSelectedActivity("all");
+                  setSelectedBodyNiche("all");
+                  setSelectedHansStep("all");
+                  setMinScore(0);
+                }}
+                className="ml-auto text-[10px] text-gold-500 hover:text-gold-400 flex items-center gap-1 transition-colors uppercase font-black tracking-wider cursor-pointer"
+              >
+                <RotateCcw size={10} /> Réinitialiser
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {/* Category Filter */}
+              <div>
+                <label className="text-[9px] text-text-muted block uppercase font-bold mb-1">Catégorie Lead</label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="bg-bg-input border border-border-subtle rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gold-500 w-full cursor-pointer"
                 >
+                  <option value="all">Toutes</option>
+                  <option value="hot">🔥 Leads Chauds</option>
+                  <option value="principal">⭐ Leads Principaux</option>
+                  <option value="tiede">☕ Leads Tièdes</option>
+                </select>
+              </div>
+
+              {/* Follower Status Filter */}
+              <div>
+                <label className="text-[9px] text-text-muted block uppercase font-bold mb-1">Statut Suivi</label>
+                <select
+                  value={selectedFollower}
+                  onChange={(e) => setSelectedFollower(e.target.value)}
+                  className="bg-bg-input border border-border-subtle rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gold-500 w-full cursor-pointer"
+                >
+                  <option value="all">Tous</option>
+                  <option value="follower">Abonnés uniquement</option>
+                  <option value="non-follower">Non abonnés uniquement</option>
+                </select>
+              </div>
+
+              {/* Activity Filter */}
+              <div>
+                <label className="text-[9px] text-text-muted block uppercase font-bold mb-1">Interactions</label>
+                <select
+                  value={selectedActivity}
+                  onChange={(e) => setSelectedActivity(e.target.value)}
+                  className="bg-bg-input border border-border-subtle rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gold-500 w-full cursor-pointer"
+                >
+                  <option value="all">Tous</option>
+                  <option value="active">Actifs (Interactions)</option>
+                  <option value="inactive">Inactifs</option>
+                </select>
+              </div>
+
+              {/* Body Category Filter */}
+              <div>
+                <label className="text-[9px] text-text-muted block uppercase font-bold mb-1">Physique</label>
+                <select
+                  value={selectedBodyNiche}
+                  onChange={(e) => setSelectedBodyNiche(e.target.value)}
+                  className="bg-bg-input border border-border-subtle rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gold-500 w-full cursor-pointer"
+                >
+                  <option value="all">Tous</option>
+                  <option value="classic">Classic Physique</option>
+                  <option value="bodybuilding">Bodybuilding</option>
+                  <option value="bikini">Bikini Fitness</option>
+                  <option value="mens">Men's Physique</option>
+                </select>
+              </div>
+
+              {/* Hans Method Step Filter */}
+              <div>
+                <label className="text-[9px] text-text-muted block uppercase font-bold mb-1">Étape Hans</label>
+                <select
+                  value={selectedHansStep}
+                  onChange={(e) => setSelectedHansStep(e.target.value)}
+                  className="bg-bg-input border border-border-subtle rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gold-500 w-full cursor-pointer"
+                >
+                  <option value="all">Toutes</option>
+                  {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+                    <option key={num} value={num.toString()}>Étape {num} - {getStepName(num)}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Min Score Range Filter */}
+              <div>
+                <label className="text-[9px] text-text-muted block uppercase font-bold mb-1">Score Qualité Min: {minScore}</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value={minScore}
+                  onChange={(e) => setMinScore(parseInt(e.target.value, 10))}
+                  className="w-full h-1 bg-border-subtle rounded-lg appearance-none cursor-pointer accent-gold-500 mt-2"
+                />
+              </div>
+            </div>
+          </div>
+
+          {filteredProspects.length === 0 ? (
+            <div className="glass-card p-8 text-center text-text-muted text-xs">
+              Aucun prospect ne correspond aux critères de filtrage sélectionnés.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredProspects.map((p) => {
+                const isEditing = editingHandle === p.handle;
+                const isElite = p.score >= 85;
+                return (
+                  <div
+                    key={p.handle}
+                    className={`p-5 relative overflow-hidden flex flex-col justify-between transition-all group rounded-2xl border ${
+                      isElite 
+                        ? "border-gold-500 bg-gradient-to-b from-gold-950/20 via-black to-black shadow-[0_0_15px_rgba(212,175,55,0.12)] hover:border-gold-400" 
+                        : "glass-card hover:border-border-active"
+                    }`}
+                  >
+                    {isElite && (
+                      <div className="absolute top-0 right-0 bg-gradient-to-l from-gold-600 to-gold-400 text-black text-[9px] font-black uppercase px-2.5 py-0.5 rounded-bl-lg tracking-widest shadow-md animate-pulse">
+                        🏆 Élite
+                      </div>
+                    )}
                   <div>
                     <div className="flex items-center gap-3 mb-4">
                       {p.avatar ? (
@@ -590,8 +787,9 @@ export default function Dashboard() {
               );
             })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    )}
 
       {/* Action Buttons */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
