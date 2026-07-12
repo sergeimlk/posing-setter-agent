@@ -91,15 +91,28 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // 2. Try Public CSV export URL
-  const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=Prospects+Qualifi%C3%A9s`;
+  // 2. Try Public CSV export URL (try by name first, fallback to gid=0 if empty)
+  const csvUrlByName = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=Prospects+Qualifi%C3%A9s`;
+  const csvUrlByDefault = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
 
   try {
-    const response = await fetch(csvUrl, { cache: "no-store" });
+    let response = await fetch(csvUrlByName, { cache: "no-store" });
+    let csvText = "";
     
     if (response.status === 200) {
-      const csvText = await response.text();
-      
+      csvText = await response.text();
+    }
+
+    // Fallback if empty or name mismatch
+    if (response.status !== 200 || csvText.trim().length === 0 || csvText.trim().startsWith("<!DOCTYPE")) {
+      console.log("ℹ️ Fetching by sheet name returned empty or sign-in. Trying default sheet (gid=0)...");
+      response = await fetch(csvUrlByDefault, { cache: "no-store" });
+      if (response.status === 200) {
+        csvText = await response.text();
+      }
+    }
+
+    if (response.status === 200) {
       // If it returns HTML (Google Sign-In page), then it is not public!
       if (csvText.trim().startsWith("<!DOCTYPE")) {
         console.warn("⚠️ Google Sheet requires authentication (returned sign-in page). Using local fallback.");

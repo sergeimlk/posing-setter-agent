@@ -29,9 +29,9 @@ const initialKPIs = {
 };
 
 const initialActivity = [
-  { time: "12:45", text: "Prospect @lois_posing qualifié au niveau 5 (Bilan posing)", icon: "🔥" },
-  { time: "11:30", text: "Message vocal transcrit pour @livio_posing", icon: "🎤" },
-  { time: "10:15", text: "Nouveau lead détecté dans les abonnés: @mael_posing", icon: "👤" }
+  { time: "12:45", text: "Prospect @lvcxs_itl qualifié au niveau 4 (Bilan posing)", icon: "🔥" },
+  { time: "11:30", text: "Message vocal transcrit pour @vuckro", icon: "🎤" },
+  { time: "10:15", text: "Nouveau lead détecté dans les abonnés: @maelledeltour", icon: "👤" }
 ];
 
 export default function Dashboard() {
@@ -519,7 +519,7 @@ export default function Dashboard() {
                       <>
                         <button
                           onClick={() => startEditing(p)}
-                          className="btn-ghost p-2 text-xs"
+                          className="btn-ghost p-2.5 text-xs flex items-center justify-center"
                           title="Modifier les infos"
                         >
                           <Edit2 size={12} />
@@ -528,13 +528,13 @@ export default function Dashboard() {
                           href={`https://www.instagram.com/${p.handle}/`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="btn-ghost flex-1 text-center py-2 text-xs flex items-center justify-center gap-1"
+                          className="btn-ghost flex-1 text-center py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 whitespace-nowrap"
                         >
-                          💬 Message DM
+                          💬 DM
                         </a>
                         <Link
                           href={`/agent?prospect=${p.handle}&step=${p.hansStep}`}
-                          className="btn-gold py-2 px-3 text-xs flex items-center justify-center"
+                          className="btn-gold py-2.5 px-3 text-xs flex items-center justify-center"
                           title="Générer brouillon"
                         >
                           <Sparkles size={12} />
