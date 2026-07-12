@@ -1,0 +1,51 @@
+{
+  "modules": [
+    {
+      "id": "mod1",
+      "slug": "af9e1b1f",
+      "title": "Module 1 — À REGARDER ABSOLUMENT",
+      "lessons": [
+        { "id": "m1l1", "title": "Présentation du POSING EMPIRE", "summary": "Le numéro 1 du posing en France. Mission : faire gagner chaque athlète sur scène. Objectifs : 50k€ avant sept. 2026, 100k€ avant 2027, conquête du marché US.", "videoType": "skool" },
+        { "id": "m1l2", "title": "Objectifs et visions", "summary": "Vision spartiate et mindset de champion. +200 athlètes accompagnés, 14 Pro Cards en 1 an. L'objectif est de devenir n°1 en France puis d'attaquer le marché américain.", "videoType": "skool" },
+        { "id": "m1l3", "title": "Présentation de l'équipe", "summary": "Manaël : coach principal posing (expert technique). Adrien : CSM Coach Routine, spécialisé dans la création de routines libres personnalisées.", "videoType": "none" },
+        { "id": "m1l4", "title": "Témoignages et résultats", "summary": "Preuve sociale : chaîne YouTube de témoignages et page Instagram des transformations posing.", "videoType": "none", "links": ["https://www.youtube.com/@ManaelPosingTémoignages", "https://www.instagram.com/posingempire/"] },
+        { "id": "m1l5", "title": "L'avatar clients", "summary": "Bodybuilder français ~27 ans, irréprochable sur la diète mais autodidacte sur le posing. Douleur identitaire : peur de gâcher des mois de sacrifices par un posing raté.", "videoType": "skool" },
+        { "id": "m1l6", "title": "OFFRE (1 497 €)", "summary": "Accompagnement 1:1 sur 3 mois : Mois 1 = poses imposées (4 séances), Mois 2 = transitions (ateliers groupe), Mois 3 = routine libre + révision veille de compétition.", "videoType": "skool" },
+        { "id": "m1l7", "title": "Notre mécanisme unique", "summary": "PUV : le posing est la seule variable 100% contrôlable (50% de la note). PUC : boucle hebdomadaire avec séance live + Loom + WhatsApp quotidien.", "videoType": "skool" },
+        { "id": "m1l8", "title": "C'est quoi le posing ?", "summary": "Art de présenter son physique : poses imposées (mandatories), transitions fluides, routine libre, présence scénique et préparation mentale.", "videoType": "none" }
+      ]
+    },
+    {
+      "id": "mod2",
+      "slug": "ed83a935",
+      "title": "Module 2 — SETTER",
+      "lessons": [
+        { "id": "m2l1", "title": "Introduction", "summary": "Le rôle du setter : convertir l'audience froide/tiède en appels qualifiés. Discipline, régularité et respect des standards.", "videoType": "skool" },
+        { "id": "m2l2", "title": "À regarder", "summary": "Présentation des outils opérationnels : CRM Notion, Calendly, liste d'exclusion. État d'esprit de réactivité.", "videoType": "skool" },
+        { "id": "m2l3", "title": "Mini formation posing", "summary": "Bases techniques pour converser avec les prospects : fédérations IFBB vs WNBF, vacuum, cramping, quarts de tour.", "videoType": "skool" },
+        { "id": "m2l4", "title": "Les standards", "summary": "8 règles d'or : réponse < 2h, zéro copier-coller, 3 appels/jour, tracking quotidien, appels matin/soir, règle des 3 chances.", "videoType": "skool" },
+        { "id": "m2l5", "title": "EXEMPLE SETTING (IMPORTANT)", "summary": "Analyse de conversations réelles Instagram : relances, urgence, gestion des objections prix, vocaux personnalisés.", "videoType": "skool" },
+        { "id": "m2l6", "title": "Détaille de l'offre", "summary": "Structure tarifaire détaillée : 4 séances indiv (M1), ateliers groupe (M2), routine + veille compét (M3). WhatsApp + Loom + Skool.", "videoType": "skool" },
+        { "id": "m2l7", "title": "SOP – Tracking quotidien", "summary": "KPIs quotidiens : messages envoyés, taux de réponse, profils qualifiés, RDV Calendly bookés.", "videoType": "skool" },
+        { "id": "m2l8", "title": "CRM NOTION", "summary": "Pipeline de vente : Prise de contact → Discussion → Qualifié → Appel booké. Renseigner chaque fiche prospect.", "videoType": "skool" },
+        { "id": "m2l9", "title": "Trame de setting", "summary": "Entonnoir pas à pas : 50 messages/jour, icebreaker story, qualifier, identifier la douleur, proposer le diagnostic.", "videoType": "skool" },
+        { "id": "m2l10", "title": "Ressources à envoyer", "summary": "Vidéos YouTube ciblées selon le blocage du prospect. Sert de preuve d'expertise et de prétexte de relance.", "videoType": "skool" },
+        { "id": "m2l11", "title": "SOP – Qualification des leads", "summary": "3 critères stricts : compétition 2026-2027, conscience du problème posing, capacité financière.", "videoType": "skool" },
+        { "id": "m2l12", "title": "Lien Calendly", "summary": "L'objectif ultime de chaque conversation : amener le prospect qualifié à réserver un créneau sur Calendly.", "videoType": "none" },
+        { "id": "m2l13", "title": "Liste des personnes à ne pas setter", "summary": "Exclusions : non-compétiteurs, profils toxiques, concurrents, chasseurs de gratuit.", "videoType": "none" }
+      ]
+    }
+  ],
+  "resources": {
+    "calendly": "https://calendly.com/posing-session-reservation/appel-decouverte-posing-empire",
+    "youtube": {
+      "quarts_de_tour": "https://youtu.be/ZUXbjlT-Lmc?si=KLcH78RoAP-XYThZ",
+      "activation_quads": "https://youtu.be/zVHV9o940nI?si=9Zk6OpIK5U_XfFPd",
+      "presence_scenique": "https://youtu.be/8_8QT46LcDM?si=07X0UTXre3ts4-9j",
+      "specifique_ifbb": "https://youtu.be/7km-L4Na4YM",
+      "specifique_wnbf": "https://youtu.be/Y_Vgyqg0dN0"
+    },
+    "temoignages_youtube": "https://www.youtube.com/@ManaelPosingTémoignages",
+    "temoignages_instagram": "https://www.instagram.com/posingempire/"
+  }
+}
