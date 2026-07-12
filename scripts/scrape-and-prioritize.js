@@ -222,28 +222,58 @@ async function main() {
   let page = pages.find(p => p.url().includes("instagram.com"));
   if (!page) {
     page = await browser.newPage();
+    console.log("🌐 Navigating to @manael.posing profile...");
+    await page.goto("https://www.instagram.com/manael.posing/", { waitUntil: "networkidle2", timeout: 45000 });
+    await sleep(4000);
+  } else {
+    console.log("ℹ️ Using existing Instagram tab at:", page.url());
+    if (!page.url().includes("manael.posing") && !page.url().includes("posingempire") && !page.url().includes("accounts/login/two_step_verification")) {
+      console.log("🌐 Navigating to @manael.posing profile...");
+      await page.goto("https://www.instagram.com/manael.posing/", { waitUntil: "networkidle2", timeout: 45000 });
+      await sleep(4000);
+    }
   }
-
-  console.log("🌐 Navigating to @manael.posing profile...");
-  await page.goto("https://www.instagram.com/manael.posing/", { waitUntil: "networkidle2", timeout: 45000 });
-  await sleep(4000);
 
   // 1. Scrape followers list from modal
   console.log("👥 Opening Followers list modal...");
   let followers = [];
   try {
-    const followersLink = await page.evaluateHandle(() => {
-      return Array.from(document.querySelectorAll('a')).find(a => 
-        a.href.includes('/followers') || 
-        a.textContent.includes('abonnés') || 
-        a.textContent.includes('followers')
-      );
-    });
+    const isModalAlreadyOpen = await page.evaluate(() => !!document.querySelector('div[role="dialog"]'));
+    let opened = isModalAlreadyOpen;
+    
+    if (!isModalAlreadyOpen) {
+      const followersLink = await page.evaluateHandle(() => {
+        return Array.from(document.querySelectorAll('a')).find(a => 
+          a.href.includes('/followers') || 
+          a.textContent.includes('abonnés') || 
+          a.textContent.includes('followers')
+        );
+      });
 
-    if (followersLink) {
-      await followersLink.asElement().click();
-      await sleep(4000);
-      
+      if (followersLink) {
+        await followersLink.asElement().click();
+        await sleep(4000);
+        opened = true;
+      }
+    }
+
+    if (opened) {
+      console.log("📜 Scrolling followers modal to load more profiles...");
+      await page.evaluate(async () => {
+        const dialog = document.querySelector('div[role="dialog"]');
+        if (!dialog) return;
+        const scrollable = dialog.querySelector('._aano') || 
+                           dialog.querySelector('div[style*="overflow-y"]') ||
+                           dialog.querySelector('ul')?.parentElement;
+        if (!scrollable) return;
+        
+        for (let i = 0; i < 25; i++) {
+          scrollable.scrollTop = scrollable.scrollHeight;
+          await new Promise(r => setTimeout(r, 900));
+        }
+      });
+      await sleep(1500);
+
       followers = await page.evaluate(() => {
         const list = [];
         const dialog = document.querySelector('div[role="dialog"]');
