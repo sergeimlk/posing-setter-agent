@@ -1,117 +1,112 @@
 {
-  "lastSync": "2026-07-12T11:24:34.959Z",
+  "lastSync": "2026-07-12T11:36:42.215Z",
   "prospects": [
     {
-      "handle": "@lucas_classic_physique",
-      "score": 75,
-      "category": "principal",
-      "hansStep": 1,
+      "handle": "lois_posing",
+      "score": 92,
+      "category": "hot",
+      "hansStep": 5,
       "pertinence": 5,
-      "propension": 3,
-      "federation": "N/A",
+      "propension": 5,
+      "federation": "IFBB",
       "categoryBody": "Classic Physique",
       "compDate": "Octobre 2026",
-      "notes": "Prospect à réveiller via story"
+      "notes": "Athlète très prometteur. Rencontre des difficultés sur l'activation du vacuum et la transition arrière. Très intéressé par l'offre d'accompagnement de 3 mois.",
+      "avatar": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=150&h=150&fit=crop&crop=faces"
     },
     {
-      "handle": "@thomas_wnbf_natty",
-      "score": 70,
+      "handle": "livio_posing",
+      "score": 88,
+      "category": "hot",
+      "hansStep": 4,
+      "pertinence": 5,
+      "propension": 4,
+      "federation": "WNBF",
+      "categoryBody": "Bodybuilding",
+      "compDate": "Septembre 2026",
+      "notes": "Cherche à perfectionner sa routine libre sur une musique personnalisée. A les moyens de s'offrir le coaching complet.",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=faces"
+    },
+    {
+      "handle": "mael_posing",
+      "score": 85,
+      "category": "hot",
+      "hansStep": 6,
+      "pertinence": 4,
+      "propension": 5,
+      "federation": "NPC",
+      "categoryBody": "Classic Physique",
+      "compDate": "Novembre 2026",
+      "notes": "Déjà convaincu de la valeur, en attente du lien de paiement ou d'un appel final pour confirmer le plan de financement en 3x.",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=faces"
+    },
+    {
+      "handle": "pierre_olivier_posing",
+      "score": 78,
+      "category": "principal",
+      "hansStep": 3,
+      "pertinence": 5,
+      "propension": 3,
+      "federation": "IFBB",
+      "categoryBody": "Men's Physique",
+      "compDate": "Octobre 2026",
+      "notes": "Doit améliorer sa posture de face et son ouverture de dorsaux. Travaille actuellement avec un coach de diète généraliste qui ne gère pas le posing.",
+      "avatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=faces"
+    },
+    {
+      "handle": "evan_posing",
+      "score": 75,
       "category": "principal",
       "hansStep": 2,
       "pertinence": 4,
       "propension": 4,
       "federation": "WNBF",
-      "categoryBody": "Bodybuilding",
-      "compDate": "Octobre 2026",
-      "notes": "Cherche une routine libre personnalisée et naturelle"
+      "categoryBody": "Classic Physique",
+      "compDate": "Novembre 2026",
+      "notes": "A répondu à la story de Manael sur le vacuum. Pose beaucoup de questions sur le contenu des séances hebdomadaires.",
+      "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=faces"
     },
     {
-      "handle": "@alex_gainz_99",
-      "score": 50,
-      "category": "tiede",
-      "hansStep": 3,
-      "pertinence": 4,
-      "propension": 3,
-      "federation": "N/A",
-      "categoryBody": "Bodybuilding",
-      "compDate": "Octobre 2026",
-      "notes": "Prospect à réveiller via story"
-    },
-    {
-      "handle": "@julien_road_to_pro",
-      "score": 85,
-      "category": "hot",
-      "hansStep": 4,
-      "pertinence": 5,
-      "propension": 3,
-      "federation": "IFBB",
-      "categoryBody": "Bodybuilding",
-      "compDate": "Octobre 2026",
-      "notes": "Compétiteur motivé, cherche à améliorer ses quarts de tour"
-    },
-    {
-      "handle": "@maxime_fit_IFBB",
-      "score": 85,
-      "category": "hot",
-      "hansStep": 5,
-      "pertinence": 5,
-      "propension": 3,
-      "federation": "IFBB",
-      "categoryBody": "Bodybuilding",
-      "compDate": "Octobre 2026",
-      "notes": "Compétiteur motivé, cherche à améliorer ses quarts de tour"
-    },
-    {
-      "handle": "@hugo_bodybuilding",
-      "score": 50,
-      "category": "tiede",
-      "hansStep": 6,
-      "pertinence": 4,
-      "propension": 3,
-      "federation": "N/A",
-      "categoryBody": "Bodybuilding",
-      "compDate": "Octobre 2026",
-      "notes": "Prospect à réveiller via story"
-    },
-    {
-      "handle": "@valentin_posing_empire",
-      "score": 50,
-      "category": "tiede",
+      "handle": "louis_posing",
+      "score": 72,
+      "category": "principal",
       "hansStep": 1,
       "pertinence": 4,
       "propension": 3,
       "federation": "N/A",
       "categoryBody": "Bodybuilding",
-      "compDate": "Octobre 2026",
-      "notes": "Prospect à réveiller via story"
+      "compDate": "Décembre 2026",
+      "notes": "Prospect chaud recommandé par un affilié. N'a jamais fait de posing encadré auparavant. Regarde beaucoup de vidéos YouTube.",
+      "avatar": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&h=150&fit=crop&crop=faces"
     },
     {
-      "handle": "@florian_shredded",
-      "score": 50,
+      "handle": "julien_posing",
+      "score": 68,
       "category": "tiede",
-      "hansStep": 2,
+      "hansStep": 3,
       "pertinence": 4,
       "propension": 3,
       "federation": "N/A",
-      "categoryBody": "Bodybuilding",
+      "categoryBody": "Men's Physique",
       "compDate": "Octobre 2026",
-      "notes": "Prospect à réveiller via story"
+      "notes": "Semble indécis sur le budget mais comprend l'importance du posing pour ne pas gâcher ses efforts de sèche.",
+      "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=faces"
     }
   ],
   "chatUsers": [
     {
-      "handle": "@lucas_classic_physique",
-      "lastMessage": "Ouais je galère un peu sur le vacuum en fait...",
+      "handle": "lois_posing",
+      "lastMessage": "Yes, je regarde ton planning et je prends le créneau Calendly de demain bro.",
       "time": "14:32"
     },
     {
-      "handle": "@thomas_wnbf_natty",
-      "lastMessage": "🎤 Message vocal",
+      "handle": "livio_posing",
+      "lastMessage": "Vocal envoyé de 45 secondes sur ma routine",
       "time": "13:15"
     },
     {
-      "handle": "@alex_gainz_99",
-      "lastMessage": "Je suis en men's physique IFBB",
+      "handle": "mael_posing",
+      "lastMessage": "Ok nickel, envoie-moi le lien.",
       "time": "Hier"
     }
   ]

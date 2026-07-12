@@ -6,7 +6,7 @@ import { LayoutDashboard, Brain, MessageCircle, GraduationCap, BarChart3 } from 
 const items = [
   { href: "/", icon: LayoutDashboard, label: "Board" },
   { href: "/agent", icon: Brain, label: "Agent" },
-  { href: "/messages", icon: MessageCircle, label: "DMs" },
+  // { href: "/messages", icon: MessageCircle, label: "DMs" },
   { href: "/formation", icon: GraduationCap, label: "Cours" },
   { href: "/reports", icon: BarChart3, label: "Rapports" },
 ];

@@ -6,7 +6,7 @@ import { LayoutDashboard, Brain, MessageCircle, GraduationCap, BarChart3, Settin
 const navItems = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/agent", icon: Brain, label: "Agent IA" },
-  { href: "/messages", icon: MessageCircle, label: "Messages" },
+  // { href: "/messages", icon: MessageCircle, label: "Messages" },
   { href: "/formation", icon: GraduationCap, label: "Formation" },
   { href: "/reports", icon: BarChart3, label: "Rapports" },
   { href: "/settings", icon: Settings, label: "Paramètres" },

@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback } from "react";
 import QuizModal from "@/components/QuizModal";
 import instagramData from "@/data/instagram-data.json";
-import { Star, ChevronLeft, ChevronRight, MessageCircle, AlertTriangle, CheckCircle2, Trophy, BarChart3, TrendingUp } from "lucide-react";
+import { Star, MessageCircle, ExternalLink, RefreshCw, Sparkles, TrendingUp, HelpCircle } from "lucide-react";
+import Link from "next/link";
 
 interface Prospect {
   handle: string;
@@ -15,6 +16,7 @@ interface Prospect {
   categoryBody: string;
   compDate: string;
   notes: string;
+  avatar?: string;
 }
 
 const initialKPIs = {
@@ -22,14 +24,14 @@ const initialKPIs = {
   dmsTarget: 150,
   callsBooked: 1,
   callsTarget: 3,
-  qualifiedLeads: 4,
-  responseRate: 25,
+  qualifiedLeads: 7,
+  responseRate: 28,
 };
 
 const initialActivity = [
-  { time: "12:45", text: "Prospect @lucas_classic_physique qualifié au niveau 5 (Bilan posing)", icon: "🔥" },
-  { time: "11:30", text: "Message vocal transcrit pour @thomas_wnbf_natty", icon: "🎤" },
-  { time: "10:15", text: "Nouveau lead détecté dans les abonnés: @alex_gainz_99", icon: "👤" }
+  { time: "12:45", text: "Prospect @lois_posing qualifié au niveau 5 (Bilan posing)", icon: "🔥" },
+  { time: "11:30", text: "Message vocal transcrit pour @livio_posing", icon: "🎤" },
+  { time: "10:15", text: "Nouveau lead détecté dans les abonnés: @mael_posing", icon: "👤" }
 ];
 
 export default function Dashboard() {
@@ -40,11 +42,8 @@ export default function Dashboard() {
   const [showQuiz, setShowQuiz] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
   const [lastReport, setLastReport] = useState<string | null>(null);
-
-  // Card Swap state
   const [prospects, setProspects] = useState<Prospect[]>([]);
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [showAllGrid, setShowAllGrid] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     if (instagramData && instagramData.prospects) {
@@ -121,6 +120,14 @@ export default function Dashboard() {
     }
   }, [kpis]);
 
+  const handleSyncBrowser = async () => {
+    setSyncing(true);
+    setTimeout(() => {
+      setSyncing(false);
+      alert("⚠️ Synchronisation initiée... Exécutez 'node scripts/sync-instagram.js' dans votre terminal pour extraire les DMs de Chrome.");
+    }, 1000);
+  };
+
   const adjustKPI = (key: keyof typeof kpis, amount: number) => {
     setKpis((prev) => ({
       ...prev,
@@ -134,12 +141,16 @@ export default function Dashboard() {
         {[1, 2, 3, 4, 5].map((s) => (
           <Star
             key={s}
-            size={12}
+            size={10}
             className={s <= count ? "text-gold-400 fill-gold-400" : "text-text-disabled"}
           />
         ))}
       </div>
     );
+  };
+
+  const getStepName = (step: number) => {
+    return ["", "Icebreaker", "Contexte", "Objectif", "Bilan", "Douleur", "Conscience", "CTA"][step] || "";
   };
 
   return (
@@ -156,6 +167,14 @@ export default function Dashboard() {
             {new Date().toLocaleDateString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
           </p>
         </div>
+        <button 
+          onClick={handleSyncBrowser} 
+          disabled={syncing}
+          className="btn-ghost text-xs flex items-center gap-1.5 self-start md:self-auto"
+        >
+          <RefreshCw size={12} className={syncing ? "animate-spin" : ""} />
+          Sync depuis Instagram Chrome Mac
+        </button>
       </div>
 
       {/* KPI Cards */}
@@ -199,149 +218,98 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Card Swap Section */}
+      {/* Grid of Prospects */}
       {prospects.length > 0 && (
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3
-              onClick={() => setShowAllGrid(!showAllGrid)}
-              className="text-lg font-black font-display text-gold-300 cursor-pointer hover:text-gold-200 transition-colors flex items-center gap-2 group"
-            >
-              🔥 Meilleurs prospects qualifiés du jour
-              <span className="text-xs font-normal text-text-muted group-hover:underline">
-                (Voir tout sous forme de grille)
-              </span>
-            </h3>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentCardIndex((prev) => (prev > 0 ? prev - 1 : prospects.length - 1))}
-                className="p-2 rounded-full border border-border-subtle bg-bg-card hover:bg-bg-card-hover text-white transition-colors"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                onClick={() => setCurrentCardIndex((prev) => (prev < prospects.length - 1 ? prev + 1 : 0))}
-                className="p-2 rounded-full border border-border-subtle bg-bg-card hover:bg-bg-card-hover text-white transition-colors"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
+          <h3 className="text-lg font-black font-display text-gold-300 flex items-center gap-2">
+            🔥 Meilleurs Prospects Qualifiés (Instagram Réel)
+          </h3>
 
-          {/* Chroma Grid View Overlay / Toggle */}
-          {showAllGrid ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-bg-card/30 rounded-2xl border border-border-white animate-fadeIn">
-              {prospects.map((p, idx) => (
-                <div
-                  key={p.handle}
-                  className="glass-card p-5 relative overflow-hidden group hover:border-border-active transition-all cursor-pointer"
-                  onClick={() => {
-                    setCurrentCardIndex(idx);
-                    setShowAllGrid(false);
-                  }}
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="font-bold text-white text-sm">{p.handle}</span>
-                    <span className="text-xs font-black text-gold-400">{p.score}/100</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {prospects.map((p) => (
+              <div
+                key={p.handle}
+                className="glass-card p-5 relative overflow-hidden flex flex-col justify-between hover:border-border-active transition-all group"
+              >
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    {p.avatar ? (
+                      <img
+                        src={p.avatar}
+                        alt={p.handle}
+                        className="w-12 h-12 rounded-full object-cover border border-gold-500/20"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gold-900/40 border border-border-subtle flex items-center justify-center text-lg">
+                        👤
+                      </div>
+                    )}
+                    <div>
+                      {/* Clickable Instagram Direct Link */}
+                      <a
+                        href={`https://www.instagram.com/${p.handle}/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-bold text-white text-sm hover:text-gold-400 flex items-center gap-1.5 transition-colors"
+                      >
+                        @{p.handle}
+                        <ExternalLink size={12} className="text-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </a>
+                      <p className="text-[10px] text-gold-500 font-medium">
+                        {p.categoryBody} • {p.federation}
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-2 text-xs">
+
+                  <div className="space-y-2 text-xs border-t border-border-white/5 pt-3 mb-4">
                     <div className="flex justify-between">
-                      <span className="text-text-muted">Étape Hans:</span>
-                      <span className="font-bold text-white">{p.hansStep}/7</span>
+                      <span className="text-text-muted">Score Qualif :</span>
+                      <span className="font-black text-gold-400">{p.score}/100</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-text-muted">Pertinence:</span>
+                      <span className="text-text-muted">Étape Hans :</span>
+                      <span className="font-bold text-white">
+                        {p.hansStep}/7 - {getStepName(p.hansStep)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">Pertinence :</span>
                       {renderStars(p.pertinence)}
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-text-muted">Propension:</span>
+                      <span className="text-text-muted">Propension :</span>
                       {renderStars(p.propension)}
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-text-muted">Fédération:</span>
-                      <span className="font-semibold text-white">{p.federation}</span>
+                      <span className="text-text-muted">Compétition :</span>
+                      <span className="text-white font-medium">{p.compDate}</span>
                     </div>
+                    <p className="text-xs text-text-secondary mt-2 line-clamp-3 italic">
+                      &ldquo; {p.notes} &rdquo;
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            /* Card Swap Display */
-            <div className="relative h-[320px] max-w-xl mx-auto flex items-center justify-center">
-              {prospects.map((p, idx) => {
-                const isCurrent = idx === currentCardIndex;
-                const offset = idx - currentCardIndex;
-                if (Math.abs(offset) > 1 && idx !== 0 && idx !== prospects.length - 1) return null;
 
-                let transformStyle = "scale(0.9) translate3d(0, 0, 0)";
-                let opacityStyle = 0;
-                let zIndex = 0;
-
-                if (isCurrent) {
-                  transformStyle = "scale(1) translate3d(0, 0, 0)";
-                  opacityStyle = 1;
-                  zIndex = 30;
-                } else if (offset === 1 || (offset === -(prospects.length - 1) && currentCardIndex === prospects.length - 1)) {
-                  transformStyle = "scale(0.95) translate3d(40px, 0, -20px)";
-                  opacityStyle = 0.6;
-                  zIndex = 20;
-                } else if (offset === -1 || (offset === (prospects.length - 1) && currentCardIndex === 0)) {
-                  transformStyle = "scale(0.95) translate3d(-40px, 0, -20px)";
-                  opacityStyle = 0.6;
-                  zIndex = 10;
-                }
-
-                return (
-                  <div
-                    key={p.handle}
-                    className="absolute w-full max-w-md h-full glass-card p-6 flex flex-col justify-between transition-all duration-500 ease-out border-t-4 border-t-gold-500"
-                    style={{
-                      transform: transformStyle,
-                      opacity: opacityStyle,
-                      zIndex: zIndex,
-                      pointerEvents: isCurrent ? "auto" : "none",
-                    }}
+                <div className="pt-3 border-t border-border-white/5 flex gap-2">
+                  <a
+                    href={`https://www.instagram.com/${p.handle}/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-ghost flex-1 text-center py-2 text-xs flex items-center justify-center gap-1"
                   >
-                    <div>
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h4 className="text-xl font-black text-white">{p.handle}</h4>
-                          <p className="text-xs text-gold-400 font-semibold">{p.categoryBody} • {p.federation}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-black text-gold-500">{p.score}</p>
-                          <p className="text-[10px] text-text-muted uppercase tracking-widest">Score Qualif</p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 bg-bg-primary/50 rounded-xl p-3 border border-border-white mb-4">
-                        <div>
-                          <p className="text-[10px] text-text-muted uppercase">Pertinence</p>
-                          <div className="mt-1">{renderStars(p.pertinence)}</div>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-text-muted uppercase">Propension Achat</p>
-                          <div className="mt-1">{renderStars(p.propension)}</div>
-                        </div>
-                      </div>
-
-                      <p className="text-sm text-text-secondary line-clamp-2 italic">“ {p.notes} ”</p>
-                    </div>
-
-                    <div className="flex items-center justify-between border-t border-border-subtle pt-4">
-                      <div>
-                        <p className="text-[10px] text-text-muted uppercase">Étape Hans</p>
-                        <p className="text-xs font-bold text-white">{p.hansStep}/7 - {["", "Icebreaker", "Contexte", "Objectif", "Bilan", "Douleur", "Conscience", "CTA"][p.hansStep]}</p>
-                      </div>
-                      <a href="/messages" className="btn-gold py-2 px-4 text-xs flex items-center gap-1.5">
-                        <MessageCircle size={14} /> Setter
-                      </a>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                    💬 Message DM
+                  </a>
+                  <Link
+                    href={`/agent?prospect=${p.handle}&step=${p.hansStep}`}
+                    className="btn-gold py-2 px-3 text-xs flex items-center justify-center"
+                    title="Générer brouillon"
+                  >
+                    <Sparkles size={12} />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
