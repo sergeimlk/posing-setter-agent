@@ -107,7 +107,7 @@ const realProfiles = [
 // Helper generators
 const firstNames = ["Lucas", "Maxence", "Hugo", "Enzo", "Valentin", "Mathieu", "Dylan", "Alexis", "Nathan", "Julien", "Alexandre", "Pierre", "Thomas", "Romain", "Guillaume", "Florian", "Nicolas", "Bastien", "Leo", "Theo", "Chloé", "Léa", "Manon", "Emma", "Sarah", "Camille", "Clara", "Inès", "Justine", "Julie"];
 const lastNames = ["Dubois", "Moreau", "Laurent", "Simon", "Michel", "Garcia", "Thomas", "Robert", "Richard", "Petit", "Durand", "Leroy", "Morel", "Guerin", "Roux", "Vincent", "Fournier", "Lambert", "Mercier", "Girard"];
-const fitSuffixes = ["_lift", "_fit", "_classic", "_bodybuilding", "_prep", "_physique", ".posing", ".shred", "_athlete"];
+const fitSuffixes = ["_lift", "_fit", "_classic", "_bodybuilding", "_prep", "_physique", ".shred", "_athlete", "_coaching"];
 
 const bodyCategories = ["Classic Physique", "Bodybuilding", "Men's Physique", "Bikini Fitness"];
 const federations = ["IFBB", "WNBF", "NPC", "N/A"];

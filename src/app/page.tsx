@@ -115,6 +115,18 @@ export default function Dashboard() {
     return true;
   });
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
+  // Reset page to 1 on filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, selectedFollower, selectedActivity, selectedBodyNiche, selectedHansStep, minScore]);
+
+  const totalPages = Math.ceil(filteredProspects.length / itemsPerPage) || 1;
+  const paginatedProspects = filteredProspects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   const fetchProspects = useCallback(async () => {
     setLoadingProspects(true);
     try {
@@ -582,8 +594,9 @@ export default function Dashboard() {
               Aucun prospect ne correspond aux critères de filtrage sélectionnés.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredProspects.map((p) => {
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {paginatedProspects.map((p) => {
                 const isEditing = editingHandle === p.handle;
                 const isElite = p.score >= 85;
                 return (
@@ -779,9 +792,66 @@ export default function Dashboard() {
               );
             })}
           </div>
-        )}
-      </div>
-    )}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-border-white/5">
+              <p className="text-xs text-text-muted">
+                Affichage de <span className="text-white font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> à{" "}
+                <span className="text-white font-medium">
+                  {Math.min(currentPage * itemsPerPage, filteredProspects.length)}
+                </span>{" "}
+                sur <span className="text-white font-medium">{filteredProspects.length}</span> prospects qualifiés
+              </p>
+              
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="btn-ghost py-2 px-3 text-xs disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1"
+                >
+                  ◀ Précédent
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => {
+                  const isNear = Math.abs(pageNumber - currentPage) <= 1;
+                  const isEnd = pageNumber === 1 || pageNumber === totalPages;
+                  if (!isNear && !isEnd) {
+                    if (pageNumber === 2 || pageNumber === totalPages - 1) {
+                      return <span key={pageNumber} className="text-text-muted text-xs px-1">...</span>;
+                    }
+                    return null;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNumber}
+                      onClick={() => setCurrentPage(pageNumber)}
+                      className={`h-8 w-8 rounded-lg text-xs font-bold transition-all ${
+                        currentPage === pageNumber
+                          ? "bg-gold-500 text-black shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+                          : "bg-bg-card border border-border-subtle text-text-secondary hover:border-gold-500 hover:text-white"
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="btn-ghost py-2 px-3 text-xs disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1"
+                >
+                  Suivant ▶
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )}
 
       {/* Action Buttons */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
