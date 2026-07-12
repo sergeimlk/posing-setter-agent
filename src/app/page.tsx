@@ -157,14 +157,6 @@ export default function Dashboard() {
     return () => window.removeEventListener("open-quiz", handler);
   }, []);
 
-  // Show quiz on first visit of the day
-  useEffect(() => {
-    const today = new Date().toDateString();
-    const lastQuiz = localStorage.getItem("lastQuizDate");
-    if (lastQuiz !== today) {
-      setTimeout(() => setShowQuiz(true), 1500);
-    }
-  }, []);
 
   const handleAnalyzeDMs = useCallback(async () => {
     setAnalyzing(true);
